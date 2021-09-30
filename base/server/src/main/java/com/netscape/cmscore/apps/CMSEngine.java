@@ -1327,6 +1327,7 @@ public class CMSEngine implements ServletContextListener {
      */
     public void shutdown() {
 
+        isStarted = false;
         logger.info("Shutting down " + name + " subsystem");
 
         /*

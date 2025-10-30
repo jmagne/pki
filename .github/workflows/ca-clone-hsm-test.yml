@@ -114,6 +114,8 @@ jobs:
 
           docker cp id_ed25519.pub primary:/root/.ssh
 
+          docker exec primary chmod 644   /root/.ssh/id_ed25519.pub
+
           docker cp known_hosts primary:/root/.ssh
 
           # check SSH client for root

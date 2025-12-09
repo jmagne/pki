@@ -104,7 +104,7 @@ class Tomcat(object):
     CONF_DIR = '/etc/tomcat'
     LIB_DIR = '/usr/share/java/tomcat'
     SHARE_DIR = '/usr/share/tomcat'
-    EXECUTABLE = '/usr/sbin/tomcat'
+    EXECUTABLE = '/usr/share/tomcat/bin/catalina.sh'
     UNIT_FILE = '/lib/systemd/system/tomcat@.service'
     SERVER_XML = CONF_DIR + '/server.xml'
     TOMCAT_CONF = CONF_DIR + '/tomcat.conf'
@@ -112,8 +112,11 @@ class Tomcat(object):
     @classmethod
     def get_version(cls):
         cmd = [Tomcat.EXECUTABLE, 'version']
+        cmd_new = [Tomcat.EXECUTABLE, 'version']
         logger.debug('Command: %s', ' '.join(cmd))
         output = subprocess.check_output(cmd)
+        output_new = subprocess.check_output(cmd_new)
+        output_new = output_new.decode('utf-8')
         output = output.decode('utf-8')
 
         # find "Server version: Apache Tomcat/<version>"
@@ -123,6 +126,12 @@ class Tomcat(object):
             re.MULTILINE  # pylint: disable=no-member
         )
 
+        if not match:
+            match = re.search(
+                r'^Server version: *.*/(.+)$',
+                output_new,
+                re.MULTILINE  # pylint: disable=no-member
+            )
         if not match:
             raise Exception('Unable to determine Tomcat version')
 
@@ -404,7 +413,7 @@ class PKIServer(object):
 
         # add Tomcat's default policy
         filename = '/usr/share/tomcat/conf/catalina.policy'
-        new_filename = '/etc/tomcat/catalina.policy'
+        new_filename = '/usr/share/tomcat/user-instance/conf/catalina.policy'
 
         logger.info('Appending %s', filename)
 
@@ -413,8 +422,8 @@ class PKIServer(object):
                 content += f.read()
         except FileNotFoundError:
             logger.info('Now trying %s', new_filename)
-            #with open(new_filename, 'r', encoding='utf-8') as f:
-            #    content += f.read()
+            with open(new_filename, 'r', encoding='utf-8') as f:
+                content += f.read()
 
         content += '\n\n'
 
